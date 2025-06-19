@@ -1,7 +1,7 @@
-FROM golang:1.23.0-bullseye AS gobuild
+FROM golang:1.23.0 AS gobuild
 WORKDIR /go/src/github.com/chaunceyjiang/single-process-oom
 COPY . .
-RUN make build
+RUN make  build-cmd
 
 FROM ubuntu:20.04
 WORKDIR /single-process-oom

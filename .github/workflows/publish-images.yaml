@@ -28,7 +28,6 @@ jobs:
 
       - name: Build images
         run: |
-          sed -i '6,7d' Dockerfile
           make images BUILD_TYPE=Release
 
       - name: Log in to registry

@@ -7,7 +7,7 @@ export IMAGE_NAME
 IMAGE_REPOSITORY ?= chaunceyjiang
 
 
-build:
+build-cmd:
 	$(GO) build -o single-process-oom ./main.go
 
 .PHONY: docker-build
