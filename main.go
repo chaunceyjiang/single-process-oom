@@ -22,6 +22,9 @@ var (
 )
 
 func matchLabelSelector(s string, podLabels map[string]string) bool {
+	if podLabels == nil {
+		return false
+	}
 	selector, err := labels.Parse(s)
 	if err != nil {
 		return false
@@ -118,10 +121,15 @@ func (p *plugin) PostUpdateContainer(ctx context.Context, pod *api.PodSandbox, c
 		}
 		return nil
 	}
-	if pod.Labels != nil || !matchLabelSelector(podLabelSelctor, pod.Labels) {
+	if !matchLabelSelector(podLabelSelctor, pod.Labels) {
 		if verbose {
 			log.Infof("pod %q does not match label selector %q, skipping", pod.Id, podLabelSelctor)
 		}
+		return nil
+	}
+	if err := p.modifyPodOOMGroup(ctx, pod); err != nil {
+		log.Errorf("failed to modify pod %q OOM group: %v", pod.Id, err)
+		return err
 	}
 	return nil
 }
