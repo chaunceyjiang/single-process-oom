@@ -1,12 +1,3 @@
-
-  ______      _            _____  _____   _    _ 
- |  ____|    | |          / ____||  __ \ | |  | |
- | |__  __ _ | | __ ___  | |  __ | |__) || |  | |
- |  __|/ _` || |/ // _ \ | | |_ ||  ___/ | |  | |
- | |  | (_| ||   <|  __/ | |__| || |     | |__| |
- |_|   \__,_||_|\_\\___|  \_____||_|      \____/ 
-                                                 
-                                                 
-Note: 
-Fake GPU is a fake GPU device. It cannot perform real GPU CUDA and will only return some query results.
-It is intended for testing and development purposes only.
+This project allows a single process inside a Pod to 
+be killed by the OOM killer **without causing the entire Pod to restart**, 
+thereby improving the stability of the Pod.
