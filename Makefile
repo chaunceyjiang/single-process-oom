@@ -5,7 +5,8 @@ export IMAGE_VERSION
 IMAGE_NAME ?= single-process-oom
 export IMAGE_NAME
 IMAGE_REPOSITORY ?= chaunceyjiang
-
+WORK_PATH := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+OUTPUT_DIR := $(WORK_PATH)/output
 
 build-cmd:
 	$(GO) build -o single-process-oom ./main.go
