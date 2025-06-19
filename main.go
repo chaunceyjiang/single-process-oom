@@ -84,13 +84,14 @@ func (p *plugin) modifyPodOOMGroup(_ context.Context, pod *api.PodSandbox) error
 			return err
 		}
 		if !d.IsDir() && d.Name() == "memory.oom.group" {
-			err := os.WriteFile(path, []byte("0"), 0644)
+			err := os.WriteFile(path, []byte("0"), 0o644)
 			return err
 		}
 		return nil
 	})
 	return err
 }
+
 func (p *plugin) StartContainer(ctx context.Context, pod *api.PodSandbox, ctr *api.Container) error {
 	if pod == nil || ctr == nil {
 		return nil
@@ -102,10 +103,15 @@ func (p *plugin) StartContainer(ctx context.Context, pod *api.PodSandbox, ctr *a
 		}
 		return nil
 	}
-	if pod.Labels != nil || !matchLabelSelector(podLabelSelctor, pod.Labels) {
-		if verbose {
-			log.Infof("pod %q does not match label selector %q, skipping", pod.Id, podLabelSelctor)
+	if matchLabelSelector(podLabelSelctor, pod.Labels) {
+		if err := p.modifyPodOOMGroup(ctx, pod); err != nil {
+			log.Errorf("failed to modify pod %q OOM group: %v", pod.Id, err)
+			return err
 		}
+		return nil
+	}
+	if verbose {
+		log.Infof("pod %q does not match label selector %q, skipping", pod.Id, podLabelSelctor)
 	}
 	return nil
 }
@@ -121,15 +127,15 @@ func (p *plugin) PostUpdateContainer(ctx context.Context, pod *api.PodSandbox, c
 		}
 		return nil
 	}
-	if !matchLabelSelector(podLabelSelctor, pod.Labels) {
-		if verbose {
-			log.Infof("pod %q does not match label selector %q, skipping", pod.Id, podLabelSelctor)
+	if matchLabelSelector(podLabelSelctor, pod.Labels) {
+		if err := p.modifyPodOOMGroup(ctx, pod); err != nil {
+			log.Errorf("failed to modify pod %q OOM group: %v", pod.Id, err)
+			return err
 		}
 		return nil
 	}
-	if err := p.modifyPodOOMGroup(ctx, pod); err != nil {
-		log.Errorf("failed to modify pod %q OOM group: %v", pod.Id, err)
-		return err
+	if verbose {
+		log.Infof("pod %q does not match label selector %q, skipping", pod.Id, podLabelSelctor)
 	}
 	return nil
 }
