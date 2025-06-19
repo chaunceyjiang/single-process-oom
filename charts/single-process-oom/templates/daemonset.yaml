@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "single-process-oom.fullname" . }}
+  labels:
+    {{- include "single-process-oom.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "single-process-oom.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "single-process-oom.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "single-process-oom.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      nodeSelector:
+        kubernetes.io/os: "linux"
+      {{- with .Values.nodeSelector }}
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nri.runtime.patchConfig }}
+      initContainers:
+      - name: patch-runtime
+        {{- if (not (or (empty .Values.nri.runtime.config) (eq .Values.nri.runtime.config.pluginRegistrationTimeout ""))) }}
+        args:
+          - -nri-plugin-registration-timeout
+          - {{ .Values.nri.runtime.config.pluginRegistrationTimeout }}
+          - -nri-plugin-request-timeout
+          - {{ .Values.nri.runtime.config.pluginRequestTimeout }}
+        {{- end }}
+        image: {{ .Values.initContainerImage.name }}:{{ .Values.initContainerImage.tag | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.initContainerImage.pullPolicy }}
+        volumeMounts:
+        - name: containerd-config
+          mountPath: /etc/containerd
+        - name: crio-config
+          mountPath: /etc/crio/crio.conf.d
+        - name: dbus-socket
+          mountPath: /var/run/dbus/system_bus_socket
+        securityContext:
+          privileged: true
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          command:
+            - /bin/single-process-oom
+            - -idx
+            - {{ .Values.nri.plugin.index | quote}}
+            - -name
+            - {{ .Values.nri.plugin.name }}
+            - -cgroup-path
+            - /host-sys/fs/cgroup
+            - -label-selector
+            - {{ .Values.nri.plugin.labelSelector | quote }}
+          securityContext:
+            privileged: true
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: nrisockets
+            mountPath: /var/run/nri
+          - name: host-cgroup
+            mountPath: /host-sys/fs/cgroup
+
+          {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+      {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      - name: host-cgroup
+        hostPath:
+          path: /sys/fs/cgroup
+          type: Directory
+      - name: nrisockets
+        hostPath:
+          path: /var/run/nri
+          type: DirectoryOrCreate
+      {{- if .Values.nri.runtime.patchConfig }}
+      - name: containerd-config
+        hostPath:
+          path: /etc/containerd/
+          type: DirectoryOrCreate
+      - name: crio-config
+        hostPath:
+          path: /etc/crio/crio.conf.d/
+          type: DirectoryOrCreate
+      - name: dbus-socket
+        hostPath:
+          path: /var/run/dbus/system_bus_socket
+          type: Socket
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

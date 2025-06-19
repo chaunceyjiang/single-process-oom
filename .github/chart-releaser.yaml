@@ -1,0 +1,3 @@
+owner: chaunceyjiang
+git-repo: single-process-oom
+release-name-template: "{{ .Version }}"
