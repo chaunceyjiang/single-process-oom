@@ -49,14 +49,3 @@ Selector labels
 app.kubernetes.io/name: {{ include "single-process-oom.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "single-process-oom.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "single-process-oom.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}

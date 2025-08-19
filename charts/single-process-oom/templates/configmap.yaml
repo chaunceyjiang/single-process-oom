@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Release.Name }}-configmap
-data:
-  single-process-oom.yaml: |-
-  {{ .Files.Get "files/single-process-oom.yaml" | indent 4 }}
