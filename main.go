@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"k8s.io/klog/v2"
 	"github.com/containerd/nri/pkg/api"
 	"github.com/containerd/nri/pkg/stub"
 	"github.com/sirupsen/logrus"
@@ -81,15 +82,20 @@ func (p *plugin) modifyPodOOMGroup(_ context.Context, pod *api.PodSandbox) error
 	}
 	err := filepath.WalkDir(cgroupHostPath+pod.Linux.CgroupParent, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
-			return err
+			klog.ErrorS(err, "failed to walk dir, skip it", "pod.name", pod.Name, "pod.namespace", pod.Namespace)
+			return nil
 		}
 		if !d.IsDir() && d.Name() == "memory.oom.group" {
 			err := os.WriteFile(path, []byte("0"), 0o644)
-			return err
+			klog.ErrorS(err, "failed to modify memory.oom.group", "pod.name", pod.Name, "pod.namespace", pod.Namespace)
+			return nil
 		}
 		return nil
 	})
-	return err
+	if err != nil {
+		klog.ErrorS(err, "failed to walk dir, skip it", "pod.name", pod.Name, "pod.namespace", pod.Namespace)
+	}
+	return nil
 }
 
 func (p *plugin) StartContainer(ctx context.Context, pod *api.PodSandbox, ctr *api.Container) error {
