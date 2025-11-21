@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   single-process-oom:
   - apiVersion: v2
+    appVersion: v0.2.6
+    created: "2025-11-21T02:51:02.864220824Z"
+    description: A Helm chart for single-process-oom.
+    digest: 9b0c337e53e1173c28d72155f3bf44da4aebec157388f5fe9e712da43a9ddd92
+    name: single-process-oom
+    type: application
+    urls:
+    - https://github.com/chaunceyjiang/single-process-oom/releases/download/v0.2.6/single-process-oom-v0.2.6.tgz
+    version: v0.2.6
+  - apiVersion: v2
     appVersion: v0.2.5
     created: "2025-08-19T09:22:08.871239527Z"
     description: A Helm chart for single-process-oom.
@@ -61,4 +71,4 @@ entries:
     urls:
     - https://github.com/chaunceyjiang/single-process-oom/releases/download/v0.2.0/single-process-oom-v0.2.0.tgz
     version: v0.2.0
-generated: "2025-08-19T09:22:08.871273431Z"
+generated: "2025-11-21T02:51:02.864249007Z"
